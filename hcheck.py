@@ -280,7 +280,13 @@ class SecurityHeaderAnalyzer:
         improvements: List[str],
         resume: bool = False,
     ) -> str:
-        implementation = "Obligatoria" if config["required"] else "Opcional"
+        if config["required"]:
+            implementation = f"{Fore.RED}Obligatorio{Style.RESET_ALL}"
+        else:
+            implementation = f"{Fore.BLUE}Opcional{Style.RESET_ALL}"
+
+        if config["priority"] == HeaderPriority.DISCLOSURE:
+            implementation = f"{Fore.LIGHTRED_EX}Remover{Style.RESET_ALL}"
 
         # Resumir el output o mostrarlo detallado
         if not resume:
@@ -293,13 +299,18 @@ class SecurityHeaderAnalyzer:
             ]
         else:
             output = [
-                f" \n✅ {Fore.CYAN}{Style.BRIGHT}{header}:{Style.RESET_ALL} Valor obtenido: {current_value}",
+                f"[{Fore.GREEN}*{Style.RESET_ALL}] {Fore.CYAN}{Style.BRIGHT}{header} ({implementation}):{Style.RESET_ALL} Valor obtenido: {current_value}",
             ]
 
         if improvements:
-            output.append(
-                f"   - {Style.BRIGHT}Recomendación:{Style.RESET_ALL} {'; '.join(improvements)}"
-            )
+            if not resume:
+                output.append(
+                    f"   - {Style.BRIGHT}Recomendación:{Style.RESET_ALL} {'; '.join(improvements)}"
+                )
+            else:
+                output.append(
+                    f"      - {Style.BRIGHT}Recomendación:{Style.RESET_ALL} {'; '.join(improvements)}"
+                )
 
         return "\n".join(output)
 
@@ -312,7 +323,11 @@ class SecurityHeaderAnalyzer:
         config: dict,
         resume: bool = False,
     ) -> str:
-        implementation = "Obligatoria" if config["required"] else "Opcional"
+
+        if config["required"]:
+            implementation = f"{Fore.RED}Obligatorio{Style.RESET_ALL}"
+        else:
+            implementation = f"{Fore.BLUE}Opcional{Style.RESET_ALL}"
 
         # Resumir el output o mostrarlo detallado
         if not resume:
@@ -325,7 +340,7 @@ class SecurityHeaderAnalyzer:
             ]
         else:
             output = [
-                f" \n❌ {Fore.RED}{Style.BRIGHT}{header}:{Style.RESET_ALL} Valor recomendado: {config['recommended_value']}",
+                f"[{Fore.RED}!{Style.RESET_ALL}] {Fore.RED}{Style.BRIGHT}{header}{Style.RESET_ALL} ({implementation}):{Style.RESET_ALL} Valor recomendado: {config['recommended_value']}",
             ]
 
         return "\n".join(output)
@@ -505,10 +520,12 @@ def main():
             headers = header_source.get_from_url(args.url, proxy, not args.no_verify)
         else:
             if args.host:
-                print(f"{Fore.CYAN}Leyendo encabezados de {args.host}{Style.RESET_ALL}")
+                print(
+                    f"{Fore.CYAN}Leyendo encabezados de {args.host}{Style.RESET_ALL}\n"
+                )
             else:
                 print(
-                    f"{Fore.CYAN}Leyendo encabezados del archivo: {args.file}{Style.RESET_ALL}"
+                    f"{Fore.CYAN}Leyendo encabezados del archivo: {args.file}{Style.RESET_ALL}\n"
                 )
 
             headers = header_source.get_from_file(args.file)
