@@ -136,10 +136,6 @@ Si encuentras algún bug o tienes alguna sugerencia, por favor:
 1. Abre un issue
 2. Envía un pull request
 
-## Licencia
-
-Este proyecto está licenciado bajo la Licencia MIT.
-
 ## Autor
 
 @unkndown
