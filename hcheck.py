@@ -554,7 +554,7 @@ def capture_output(func):
 def analyze_and_print_results(header_source, analyzer, args, proxy):
     # Obtener encabezados según la fuente
     if args.url:
-        print(f"{Fore.CYAN}Obteniendo encabezados de: {args.url}{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}Obteniendo encabezados de: {args.url}{Style.RESET_ALL}\n")
 
         # Procesar headers personalizados si existen
         custom_headers = {}
@@ -597,7 +597,7 @@ def analyze_and_print_results(header_source, analyzer, args, proxy):
         HeaderPriority.DISCLOSURE: Fore.LIGHTRED_EX,
     }
 
-    # Primero mostrar todos los headers presentes si se ha seleccionado resumen
+    # Primero mostrar todos los headers presentes si se ha seleccionado --resume
     if args.resume:
         for priority in HeaderPriority:
             for header in results[priority]["present"]:
@@ -628,6 +628,32 @@ def analyze_and_print_results(header_source, analyzer, args, proxy):
 
 
 #
+# Analiza múltiples URLs y retorna sus resultados
+#
+@capture_output
+def analyze_multiple_urls(header_source, analyzer, urls, args, proxy):
+    for url in urls:
+        print(f"\n{Fore.CYAN}{'='*50}{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}Analizando: {url}{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{'='*50}{Style.RESET_ALL}\n")
+
+        try:
+            # Guardamos la URL original
+            original_url = args.url
+            # Asignamos la URL actual
+            args.url = url
+
+            # Usamos la función existente
+            analyze_and_print_results(header_source, analyzer, args, proxy)
+
+            # Restauramos la URL original
+            args.url = original_url
+
+        except Exception as e:
+            print(f"{Fore.RED}Error analizando {url}: {str(e)}{Style.RESET_ALL}")
+
+
+#
 # Imprime el resumen de resultados
 #
 def main():
@@ -640,7 +666,13 @@ def main():
 
     source_group.add_argument(
         "--url",
-        help="URL para analizar los encabezados",
+        action="append",
+        help="URL para analizar. Se puede usar múltiples veces",
+    )
+
+    source_group.add_argument(
+        "--urls-file",
+        help="Archivo con lista de URLs para analizar (una por línea)",
     )
 
     source_group.add_argument(
@@ -691,14 +723,33 @@ def main():
         if args.proxy:
             proxy = {"http": args.proxy, "https": args.proxy}
 
-        # Capturar el output
-        output = analyze_and_print_results(header_source, analyzer, args, proxy)
+        if args.urls_file:
+            # Leer URLs del archivo
+            try:
+                with open(args.urls_file, "r") as f:
+                    urls = [line.strip() for line in f if line.strip()]
+            except Exception as e:
+                print(
+                    f"{Fore.RED}Error leyendo archivo de URLs: {str(e)}{Style.RESET_ALL}"
+                )
+                return
+
+            output = analyze_multiple_urls(header_source, analyzer, urls, args, proxy)
+
+        elif args.url:
+            # URLs proporcionadas por línea de comando
+            output = analyze_multiple_urls(
+                header_source, analyzer, args.url, args, proxy
+            )
+
+        else:
+            # Análisis de archivo de headers
+            output = analyze_and_print_results(header_source, analyzer, args, proxy)
 
         # Si se especificó un archivo de salida, guardar los resultados
         if args.output:
             try:
                 with open(args.output, "w", encoding="utf-8") as f:
-                    # Remover los códigos de color ANSI
                     import re
 
                     ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")

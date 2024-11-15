@@ -60,11 +60,20 @@ python script.py --url https://ejemplo.com --header "Cookie:sessionId=123" --hea
 python3 hcheck.py --url https://ejemplo.com --output resultados.txt
 ```
 
+### Análisis de múltiples URLs:
+```bash
+# Usando múltiples --url
+python3 hcheck.py --url https://ejemplo1.com --url https://ejemplo2.com
+
+# Usando un archivo con URLs
+python3 hcheck.py --urls-file lista_urls.txt
+
 ### Opciones disponibles:
 ```
 opciones:
   -h, --help           Muestra este mensaje de ayuda
-  --url URL            URL para analizar los encabezados
+  --url URL            URL para analizar. Se puede usar múltiples veces
+  --urls-file FILE     Archivo con lista de URLs para analizar (una por línea)
   --file FILE          Archivo con los encabezados para analizar
   --host HOST          URL a mostrar en el output
   --resume             Output resumido
