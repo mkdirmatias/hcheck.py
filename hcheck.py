@@ -198,6 +198,18 @@ class SecurityHeaderAnalyzer:
                 "recommended_value": "require-corp",
                 "description": "Asegura que los recursos cross-origin estén opt-in",
             },
+            "Expect-CT": {
+                "priority": HeaderPriority.HIGH,  # o MEDIUM según consideremos
+                "required": False,
+                "recommended_value": "max-age=86400, enforce",
+                "description": "Certificate Transparency enforcement",
+            },
+            "X-Permitted-Cross-Domain-Policies": {
+                "priority": HeaderPriority.MEDIUM,
+                "required": False,
+                "recommended_value": "none",
+                "description": "Controla políticas cross-domain para archivos Adobe",
+            },
             # OPCIONALES - Necesarios solo si se usa CORS
             "Access-Control-Allow-Origin": {
                 "priority": HeaderPriority.OPTIONAL,
