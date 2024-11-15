@@ -272,6 +272,36 @@ class SecurityHeaderAnalyzer:
                 "recommended_value": "",
                 "description": "Expone información del cache Varnish",
             },
+            "Via": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone información sobre proxies/gateways intermedios",
+            },
+            "X-Served-By": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone el servidor que procesó la petición",
+            },
+            "X-Client-IP": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone la IP del cliente",
+            },
+            "X-Server-IP": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone la IP del servidor",
+            },
+            "X-Backend-Server": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone información del servidor backend",
+            },
         }
 
     #
@@ -435,6 +465,11 @@ class SecurityHeaderAnalyzer:
                     "X-Generator",
                     "X-Drupal-Cache",
                     "X-Varnish",
+                    "Via",
+                    "X-Served-By",
+                    "X-Client-IP",
+                    "X-Server-IP",
+                    "X-Backend-Server",
                 ]:
                     if current_value and not current_value.strip() == "":
                         improvements.append(
