@@ -326,13 +326,15 @@ class SecurityHeaderAnalyzer:
 
         if config["required"]:
             implementation = f"{Fore.RED}Obligatorio{Style.RESET_ALL}"
+            name = f"{Fore.RED}{Style.BRIGHT}{header}:{Style.RESET_ALL}"
         else:
-            implementation = f"{Fore.BLUE}Opcional{Style.RESET_ALL}"
+            implementation = f"{Fore.YELLOW}Opcional{Style.RESET_ALL}"
+            name = f"{Fore.YELLOW}{Style.BRIGHT}{header}:{Style.RESET_ALL}"
 
         # Resumir el output o mostrarlo detallado
         if not resume:
             output = [
-                f" \n❌ {Fore.RED}{Style.BRIGHT}{header}:{Style.RESET_ALL}",
+                f"\n❌ {name}",
                 f"   - {Style.BRIGHT}Descripción:{Style.RESET_ALL} {config['description']}",
                 f"   - {Style.BRIGHT}Implementación:{Style.RESET_ALL} {implementation}",
                 f"   - {Style.BRIGHT}Valor recomendado:{Style.RESET_ALL} {config['recommended_value']}",
@@ -340,7 +342,7 @@ class SecurityHeaderAnalyzer:
             ]
         else:
             output = [
-                f"[{Fore.RED}!{Style.RESET_ALL}] {Fore.RED}{Style.BRIGHT}{header}{Style.RESET_ALL} ({implementation}):{Style.RESET_ALL} Valor recomendado: {config['recommended_value']}",
+                f"[{Fore.RED}!{Style.RESET_ALL}] {name} ({implementation}):{Style.RESET_ALL} Valor recomendado: {config['recommended_value']}",
             ]
 
         return "\n".join(output)
