@@ -66,7 +66,7 @@ def print_section_header(priority: str, color: str) -> None:
     description = SECTION_DESCRIPTIONS.get(priority, "")
     wrapped_description = wrap_description(description)
     header = SECTION_TEMPLATE.format(priority=priority, description=wrapped_description)
-    print(f"\n{color}{header}{Style.RESET_ALL}")
+    print(f"{color}{header}{Style.RESET_ALL}")
 
 
 class HeaderPriority(Enum):
@@ -87,6 +87,7 @@ class HeaderSource:
     def get_from_url(
         self,
         url: str,
+        custom_headers: Dict[str, str] = None,
         proxy: Dict[str, str] = None,
         verify_ssl: bool = True,
     ) -> Dict[str, str]:
@@ -94,7 +95,11 @@ class HeaderSource:
             if proxy:
                 self.session.proxies.update(proxy)
 
-            response = self.session.get(url, verify=verify_ssl)
+            headers = {}
+            if custom_headers:
+                headers.update(custom_headers)
+
+            response = self.session.get(url, headers=headers, verify=verify_ssl)
             return dict(response.headers)
         except requests.exceptions.RequestException as e:
             raise Exception(f"Error al obtener los encabezados de la URL: {str(e)}")
@@ -505,6 +510,12 @@ def main():
         help="Deshabilitar verificación SSL cuando se usa una URL",
     )
 
+    parser.add_argument(
+        "--header",
+        action="append",
+        help="Headers personalizados (formato: 'Nombre:Valor'). Se puede usar múltiples veces",
+    )
+
     args = parser.parse_args()
 
     try:
@@ -518,8 +529,29 @@ def main():
 
         # Obtener encabezados según la fuente
         if args.url:
-            print(f"{Fore.CYAN}Obteniendo encabezados de: {args.url}{Style.RESET_ALL}")
-            headers = header_source.get_from_url(args.url, proxy, not args.no_verify)
+            print(
+                f"{Fore.CYAN}Obteniendo encabezados de: {args.url}{Style.RESET_ALL}\n"
+            )
+
+            # Procesar headers personalizados si existen
+            custom_headers = {}
+            if args.header:
+                for header in args.header:
+                    try:
+                        name, value = header.split(":", 1)
+                        custom_headers[name.strip()] = value.strip()
+                    except ValueError:
+                        print(
+                            f"{Fore.RED}Error: formato de header inválido: {header}{Style.RESET_ALL}"
+                        )
+                        continue
+
+            headers = header_source.get_from_url(
+                args.url,
+                custom_headers=custom_headers,
+                proxy=proxy,
+                verify_ssl=not args.no_verify,
+            )
         else:
             if args.host:
                 print(
