@@ -57,7 +57,8 @@ python script.py --url https://ejemplo.com --header "Cookie:sessionId=123" --hea
 
 ### Guardar resultados en archivo:
 ```bash
-python3 hcheck.py --file headers.txt --output resultados.txt
+python3 hcheck.py --url https://ejemplo.com --output resultados.txt
+```
 
 ### Opciones disponibles:
 ```
