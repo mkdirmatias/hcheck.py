@@ -125,14 +125,14 @@ Content-Length: 1051
 ```bash
 python3 hcheck.py --file headers.txt --host https://hacking.cl
 ```
-![Completa](https://i.imgur.com/RXdMRYB.png)
+![Completa](https://i.imgur.com/yK7Qp0d.png)
 
 
 ### Análisis resumido:
 ```bash
 python3 hcheck.py --file headers.txt --host https://hacking.cl --resume
 ```
-![Resumen](https://i.imgur.com/sbhEOUG.png)
+![Resumen](https://i.imgur.com/KqKHjEm.png)
 
 
 ## Contribuir
