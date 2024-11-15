@@ -10,7 +10,7 @@
 
 - Análisis de headers de seguridad HTTP
 - Soporte para análisis de URLs directas y archivos locales
-- Categorización de headers por prioridad (Crítico, Alta, Media, Opcional)
+- Categorización de headers por categoría (Crítico, Alta, Media, Opcional, Exposición)
 - Verificación de configuraciones recomendadas
 - Soporte para proxy
 - Modo resumen para salida compacta
@@ -92,6 +92,16 @@ opciones:
 - Access-Control-Allow-Methods
 - Access-Control-Allow-Headers
 - Access-Control-Max-Age
+
+### Headers de Exposición
+- Server
+- X-Powered-By
+- X-AspNet-Version
+- X-AspNetMvc-Version
+- X-Runtime
+- X-Generator
+- X-Drupal-Cache
+- X-Varnish
 
 ## Formato del Archivo de Headers
 
