@@ -286,10 +286,10 @@ class SecurityHeaderAnalyzer:
         if not resume:
             output = [
                 f" \n✅ {Fore.CYAN}{Style.BRIGHT}{header}:{Style.RESET_ALL}",
-                f"   - Descripción: {config['description']}",
-                f"   - Valor obtenido: {current_value}",
-                f"   - Implementación: {implementation}",
-                f"   - Estado: Implementado",
+                f"   - {Style.BRIGHT}Descripción:{Style.RESET_ALL} {config['description']}",
+                f"   - {Style.BRIGHT}Valor obtenido:{Style.RESET_ALL} {current_value}",
+                f"   - {Style.BRIGHT}Implementación:{Style.RESET_ALL} {implementation}",
+                f"   - {Style.BRIGHT}Estado:{Style.RESET_ALL} Implementado",
             ]
         else:
             output = [
@@ -318,10 +318,10 @@ class SecurityHeaderAnalyzer:
         if not resume:
             output = [
                 f" \n❌ {Fore.RED}{Style.BRIGHT}{header}:{Style.RESET_ALL}",
-                f"   - Descripción: {config['description']}",
-                f"   - Implementación: {implementation}",
-                f"   - Valor recomendado: {config['recommended_value']}",
-                f"   - Estado: Faltante",
+                f"   - {Style.BRIGHT}Descripción:{Style.RESET_ALL} {config['description']}",
+                f"   - {Style.BRIGHT}Implementación:{Style.RESET_ALL} {implementation}",
+                f"   - {Style.BRIGHT}Valor recomendado:{Style.RESET_ALL} {config['recommended_value']}",
+                f"   - {Style.BRIGHT}Estado:{Style.RESET_ALL} Faltante",
             ]
         else:
             output = [
