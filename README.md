@@ -50,16 +50,22 @@ python3 hcheck.py --url https://ejemplo.com --proxy http://127.0.0.1:8080
 python3 hcheck.py --url https://ejemplo.com --resume
 ```
 
+### Headers personalizados:
+```bash
+python script.py --url https://ejemplo.com --header "Cookie:sessionId=123" --header "Authorization:Bearer token123"
+```
+
 ### Opciones disponibles:
 ```
 opciones:
-  -h, --help            Muestra este mensaje de ayuda
+  -h, --help           Muestra este mensaje de ayuda
   --url URL            URL para analizar los encabezados
   --file FILE          Archivo con los encabezados para analizar
   --host HOST          URL a mostrar en el output
   --resume             Output resumido
   --proxy PROXY        Proxy para usar (formato: http://user:pass@host:port)
   --no-verify          Deshabilitar verificación SSL cuando se usa una URL
+  --header HEADER      Headers personalizados (formato: 'Nombre:Valor'). Se puede usar múltiples veces
 ```
 
 ## Headers Analizados
