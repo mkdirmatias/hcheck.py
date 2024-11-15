@@ -344,6 +344,12 @@ class SecurityHeaderAnalyzer:
                             "Usar '1; mode=block' para mejor protección"
                         )
 
+                elif header == "Access-Control-Allow-Origin":
+                    if current_value == "*":
+                        improvements.append(
+                            "El valor '*' es inseguro. Especifica los dominios permitidos explícitamente"
+                        )
+
                 results[priority]["present"].append(
                     self.format_present_header(
                         header,
