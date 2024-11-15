@@ -67,6 +67,7 @@ python3 hcheck.py --url https://ejemplo1.com --url https://ejemplo2.com
 
 # Usando un archivo con URLs
 python3 hcheck.py --urls-file lista_urls.txt
+```
 
 ### Opciones disponibles:
 ```
