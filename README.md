@@ -55,6 +55,10 @@ python3 hcheck.py --url https://ejemplo.com --resume
 python script.py --url https://ejemplo.com --header "Cookie:sessionId=123" --header "Authorization:Bearer token123"
 ```
 
+### Guardar resultados en archivo:
+```bash
+python3 hcheck.py --file headers.txt --output resultados.txt
+
 ### Opciones disponibles:
 ```
 opciones:
@@ -66,6 +70,7 @@ opciones:
   --proxy PROXY        Proxy para usar (formato: http://user:pass@host:port)
   --no-verify          Deshabilitar verificación SSL cuando se usa una URL
   --header HEADER      Headers personalizados (formato: 'Nombre:Valor'). Se puede usar múltiples veces
+  --output OUTPUT      Archivo de salida para guardar los resultados (ejemplo: resultados.txt)
 ```
 
 ## Headers Analizados

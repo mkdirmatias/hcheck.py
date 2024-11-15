@@ -505,6 +505,117 @@ def print_colored_section(
 
 
 #
+# Decorador para capturar el output de la función
+#
+def capture_output(func):
+    from io import StringIO
+    import sys
+
+    def wrapper(*args, **kwargs):
+        # Guardar el stdout original
+        old_stdout = sys.stdout
+        # Crear un buffer para capturar el output
+        result = StringIO()
+        sys.stdout = result
+
+        try:
+            # Ejecutar la función original
+            func(*args, **kwargs)
+            # Obtener el output capturado
+            output = result.getvalue()
+            # Restaurar stdout
+            sys.stdout = old_stdout
+            # Imprimir en pantalla
+            print(output, end="")
+            return output
+        finally:
+            sys.stdout = old_stdout
+            result.close()
+
+    return wrapper
+
+
+#
+# Analiza y imprime los resultados
+#
+@capture_output
+def analyze_and_print_results(header_source, analyzer, args, proxy):
+    # Obtener encabezados según la fuente
+    if args.url:
+        print(f"{Fore.CYAN}Obteniendo encabezados de: {args.url}{Style.RESET_ALL}")
+
+        # Procesar headers personalizados si existen
+        custom_headers = {}
+        if args.header:
+            for header in args.header:
+                try:
+                    name, value = header.split(":", 1)
+                    custom_headers[name.strip()] = value.strip()
+                except ValueError:
+                    print(
+                        f"{Fore.RED}Error: formato de header inválido: {header}{Style.RESET_ALL}"
+                    )
+                    continue
+
+        headers = header_source.get_from_url(
+            args.url,
+            custom_headers=custom_headers,
+            proxy=proxy,
+            verify_ssl=not args.no_verify,
+        )
+    else:
+        if args.host:
+            print(f"{Fore.CYAN}Leyendo encabezados de {args.host}{Style.RESET_ALL}\n")
+        else:
+            print(
+                f"{Fore.CYAN}Leyendo encabezados del archivo: {args.file}{Style.RESET_ALL}\n"
+            )
+
+        headers = header_source.get_from_file(args.file)
+
+    # Analizar encabezados
+    results = analyzer.analyze_headers(headers, args.resume)
+
+    # Imprimir resultados por prioridad
+    priority_colors = {
+        HeaderPriority.CRITICAL: Fore.MAGENTA,
+        HeaderPriority.HIGH: Fore.YELLOW,
+        HeaderPriority.MEDIUM: Fore.GREEN,
+        HeaderPriority.OPTIONAL: Fore.BLUE,
+        HeaderPriority.DISCLOSURE: Fore.LIGHTRED_EX,
+    }
+
+    # Primero mostrar todos los headers presentes si se ha seleccionado resumen
+    if args.resume:
+        for priority in HeaderPriority:
+            for header in results[priority]["present"]:
+                print(f"  {header}")
+
+        for priority in HeaderPriority:
+            for header in results[priority]["missing"]:
+                print(f"  {header}")
+    else:
+        for priority in HeaderPriority:
+            # Solo mostrar la sección DISCLOSURE si hay headers presentes
+            if (
+                priority == HeaderPriority.DISCLOSURE
+                and not results[priority]["present"]
+            ):
+                continue
+
+            if not args.resume:
+                print_section_header(priority.value, priority_colors[priority])
+
+            if results[priority]["present"]:
+                for header in results[priority]["present"]:
+                    print(f"  {header}")
+
+            if results[priority]["missing"] and priority != HeaderPriority.DISCLOSURE:
+                for header in results[priority]["missing"]:
+                    print(f"  {header}")
+
+
+#
 # Imprime el resumen de resultados
 #
 def main():
@@ -529,6 +640,7 @@ def main():
         "--host",
         help="URL a mostrar en el output",
     )
+
     parser.add_argument(
         "--resume",
         action="store_true",
@@ -551,6 +663,11 @@ def main():
         help="Headers personalizados (formato: 'Nombre:Valor'). Se puede usar múltiples veces",
     )
 
+    parser.add_argument(
+        "--output",
+        help="Archivo de salida para guardar los resultados (ejemplo: resultados.txt)",
+    )
+
     args = parser.parse_args()
 
     try:
@@ -562,86 +679,26 @@ def main():
         if args.proxy:
             proxy = {"http": args.proxy, "https": args.proxy}
 
-        # Obtener encabezados según la fuente
-        if args.url:
-            print(
-                f"{Fore.CYAN}Obteniendo encabezados de: {args.url}{Style.RESET_ALL}\n"
-            )
+        # Capturar el output
+        output = analyze_and_print_results(header_source, analyzer, args, proxy)
 
-            # Procesar headers personalizados si existen
-            custom_headers = {}
-            if args.header:
-                for header in args.header:
-                    try:
-                        name, value = header.split(":", 1)
-                        custom_headers[name.strip()] = value.strip()
-                    except ValueError:
-                        print(
-                            f"{Fore.RED}Error: formato de header inválido: {header}{Style.RESET_ALL}"
-                        )
-                        continue
+        # Si se especificó un archivo de salida, guardar los resultados
+        if args.output:
+            try:
+                with open(args.output, "w", encoding="utf-8") as f:
+                    # Remover los códigos de color ANSI
+                    import re
 
-            headers = header_source.get_from_url(
-                args.url,
-                custom_headers=custom_headers,
-                proxy=proxy,
-                verify_ssl=not args.no_verify,
-            )
-        else:
-            if args.host:
+                    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+                    clean_output = ansi_escape.sub("", output)
+                    f.write(clean_output)
                 print(
-                    f"{Fore.CYAN}Leyendo encabezados de {args.host}{Style.RESET_ALL}\n"
+                    f"\n{Fore.GREEN}Resultados guardados en: {args.output}{Style.RESET_ALL}"
                 )
-            else:
+            except Exception as e:
                 print(
-                    f"{Fore.CYAN}Leyendo encabezados del archivo: {args.file}{Style.RESET_ALL}\n"
+                    f"\n{Fore.RED}Error al guardar el archivo: {str(e)}{Style.RESET_ALL}"
                 )
-
-            headers = header_source.get_from_file(args.file)
-
-        # Analizar encabezados
-        results = analyzer.analyze_headers(headers, args.resume)
-
-        # Imprimir resultados por prioridad
-        priority_colors = {
-            HeaderPriority.CRITICAL: Fore.MAGENTA,
-            HeaderPriority.HIGH: Fore.YELLOW,
-            HeaderPriority.MEDIUM: Fore.GREEN,
-            HeaderPriority.OPTIONAL: Fore.BLUE,
-            HeaderPriority.DISCLOSURE: Fore.LIGHTRED_EX,
-        }
-
-        # Primero mostrar todos los headers presentes si se ha seleccionado resumen
-        if args.resume:
-            for priority in HeaderPriority:
-                for header in results[priority]["present"]:
-                    print(f"  {header}")
-
-            for priority in HeaderPriority:
-                for header in results[priority]["missing"]:
-                    print(f"  {header}")
-        else:
-            for priority in HeaderPriority:
-                # Solo mostrar la sección DISCLOSURE si hay headers presentes
-                if (
-                    priority == HeaderPriority.DISCLOSURE
-                    and not results[priority]["present"]
-                ):
-                    continue
-
-                if not args.resume:
-                    print_section_header(priority.value, priority_colors[priority])
-
-                if results[priority]["present"]:
-                    for header in results[priority]["present"]:
-                        print(f"  {header}")
-
-                if (
-                    results[priority]["missing"]
-                    and priority != HeaderPriority.DISCLOSURE
-                ):
-                    for header in results[priority]["missing"]:
-                        print(f"  {header}")
 
     except Exception as e:
         print(f"{Fore.RED}Error: {str(e)}{Style.RESET_ALL}")
