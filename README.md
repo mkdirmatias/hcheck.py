@@ -126,7 +126,7 @@ python3 hcheck.py --file headers.txt --host https://hacking.cl
 ```bash
 python3 hcheck.py --file headers.txt --host https://hacking.cl --resume
 ```
-![Resumen](https://i.imgur.com/cRywXt7.png)
+![Resumen](https://i.imgur.com/sbhEOUG.png)
 
 
 ## Contribuir
