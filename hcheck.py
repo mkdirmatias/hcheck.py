@@ -37,6 +37,7 @@ SECTION_DESCRIPTIONS = {
     "ALTA": "Headers importantes que proporcionan capas adicionales de seguridad. Se recomienda fuertemente su implementación.",
     "MEDIA": "Headers que mejoran la seguridad pero son específicos para ciertos casos de uso o proporcionan protección adicional.",
     "OPCIONAL": "Headers que pueden ser necesarios según el contexto específico del aplicativo, especialmente para configuraciones CORS.",
+    "EXPOSICIÓN": "Headers que exponen información sensible sobre tecnologías, versiones o configuraciones del servidor. Se recomienda ocultarlos o eliminarlos.",
 }
 
 SECTION_TEMPLATE = """
@@ -73,6 +74,7 @@ class HeaderPriority(Enum):
     HIGH = "ALTA"
     MEDIUM = "MEDIA"
     OPTIONAL = "OPCIONAL"
+    DISCLOSURE = "EXPOSICIÓN"
 
 
 class HeaderSource:
@@ -216,6 +218,55 @@ class SecurityHeaderAnalyzer:
                 "recommended_value": "86400",
                 "description": "Control de CORS - tiempo de cache para preflight",
             },
+            # HEADERS DE EXPOSICIÓN
+            "Server": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone información del servidor web",
+            },
+            "X-Powered-By": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone información sobre el framework/lenguaje utilizado",
+            },
+            "X-AspNet-Version": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone la versión de ASP.NET",
+            },
+            "X-AspNetMvc-Version": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone la versión de ASP.NET MVC",
+            },
+            "X-Runtime": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone información sobre el runtime (común en Ruby)",
+            },
+            "X-Generator": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone información sobre el generador del sitio",
+            },
+            "X-Drupal-Cache": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone información de Drupal",
+            },
+            "X-Varnish": {
+                "priority": HeaderPriority.DISCLOSURE,
+                "required": False,
+                "recommended_value": "",
+                "description": "Expone información del cache Varnish",
+            },
         }
 
     #
@@ -292,6 +343,7 @@ class SecurityHeaderAnalyzer:
             HeaderPriority.HIGH: {"present": [], "missing": []},
             HeaderPriority.MEDIUM: {"present": [], "missing": []},
             HeaderPriority.OPTIONAL: {"present": [], "missing": []},
+            HeaderPriority.DISCLOSURE: {"present": [], "missing": []},
         }
 
         for header, config in self.recommended_headers.items():
@@ -306,13 +358,15 @@ class SecurityHeaderAnalyzer:
                     break
 
             if not header_found:
-                results[priority]["missing"].append(
-                    self.format_missing_header(
-                        header,
-                        config,
-                        resume,
+                # Solo agregar a missing si NO es un header de exposición
+                if priority != HeaderPriority.DISCLOSURE:
+                    results[priority]["missing"].append(
+                        self.format_missing_header(
+                            header,
+                            config,
+                            resume,
+                        )
                     )
-                )
             else:
                 current_value = headers[header_found]
                 improvements = []
@@ -348,6 +402,21 @@ class SecurityHeaderAnalyzer:
                     if current_value == "*":
                         improvements.append(
                             "El valor '*' es inseguro. Especifica los dominios permitidos explícitamente"
+                        )
+
+                elif header in [
+                    "Server",
+                    "X-Powered-By",
+                    "X-AspNet-Version",
+                    "X-AspNetMvc-Version",
+                    "X-Runtime",
+                    "X-Generator",
+                    "X-Drupal-Cache",
+                    "X-Varnish",
+                ]:
+                    if current_value and not current_value.strip() == "":
+                        improvements.append(
+                            f"Se recomienda eliminar o ocultar este header para evitar exponer información sensible"
                         )
 
                 results[priority]["present"].append(
@@ -453,6 +522,7 @@ def main():
             HeaderPriority.HIGH: Fore.YELLOW,
             HeaderPriority.MEDIUM: Fore.GREEN,
             HeaderPriority.OPTIONAL: Fore.BLUE,
+            HeaderPriority.DISCLOSURE: Fore.LIGHTRED_EX,
         }
 
         # Primero mostrar todos los headers presentes si se ha seleccionado resumen
@@ -466,13 +536,24 @@ def main():
                     print(f"  {header}")
         else:
             for priority in HeaderPriority:
-                print_section_header(priority.value, priority_colors[priority])
+                # Solo mostrar la sección DISCLOSURE si hay headers presentes
+                if (
+                    priority == HeaderPriority.DISCLOSURE
+                    and not results[priority]["present"]
+                ):
+                    continue
+
+                if not args.resume:
+                    print_section_header(priority.value, priority_colors[priority])
 
                 if results[priority]["present"]:
                     for header in results[priority]["present"]:
                         print(f"  {header}")
 
-                if results[priority]["missing"]:
+                if (
+                    results[priority]["missing"]
+                    and priority != HeaderPriority.DISCLOSURE
+                ):
                     for header in results[priority]["missing"]:
                         print(f"  {header}")
 
