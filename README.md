@@ -102,6 +102,11 @@ opciones:
 - X-Generator
 - X-Drupal-Cache
 - X-Varnish
+- Via
+- X-Served-By
+- X-Client-IP
+- X-Server-IP
+- X-Backend-Server
 
 ## Formato del Archivo de Headers
 
