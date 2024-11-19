@@ -548,15 +548,59 @@ def capture_output(func):
 
 
 #
+# Recuento resumen de encabezados
+#
+def print_summary(results):
+    critical_count = {"present": 0, "missing": 0}
+    optional_count = {"present": 0, "missing": 0}
+    disclosure_count = {"present": 0, "missing": 0}
+
+    for priority in HeaderPriority:
+        for header in results[priority]["present"]:
+            if "Obligatorio" in header:
+                critical_count["present"] += 1
+            elif "Remover" in header:
+                disclosure_count["present"] += 1
+            elif "Opcional" in header:
+                optional_count["present"] += 1
+
+        for header in results[priority]["missing"]:
+            if "Obligatorio" in header:
+                critical_count["missing"] += 1
+            elif "Opcional" in header:
+                optional_count["missing"] += 1
+
+    width = 50
+    print(f"\n{Fore.CYAN}{'='*width}")
+    print(f"{'RESUMEN DE ANÁLISIS':^{width}}")
+    print(f"{'='*width}{Style.RESET_ALL}")
+
+    print(
+        f"\n{Fore.GREEN}[*] Headers Obligatorios Encontrados: {critical_count['present']}{Style.RESET_ALL}"
+    )
+    print(
+        f"{Fore.RED}[!] Headers Obligatorios Faltantes: {critical_count['missing']}{Style.RESET_ALL}"
+    )
+    print(
+        f"{Fore.GREEN}[*] Headers Opcionales Encontrados: {optional_count['present']}{Style.RESET_ALL}"
+    )
+    print(
+        f"{Fore.YELLOW}[*] Headers Opcionales Faltantes: {optional_count['missing']}{Style.RESET_ALL}"
+    )
+    print(
+        f"{Fore.LIGHTRED_EX}[!] Headers de Exposición Encontrados: {disclosure_count['present']}{Style.RESET_ALL}"
+    )
+
+
+#
 # Analiza y imprime los resultados
 #
 @capture_output
 def analyze_and_print_results(header_source, analyzer, args, proxy):
-    # Obtener encabezados según la fuente
-    if args.url:
+    if args.urls_file:
+        headers = header_source.get_from_file(args.urls_file)
+    elif args.url:
         print(f"{Fore.CYAN}Obteniendo encabezados de: {args.url}{Style.RESET_ALL}\n")
-
-        # Procesar headers personalizados si existen
         custom_headers = {}
         if args.header:
             for header in args.header:
@@ -582,13 +626,10 @@ def analyze_and_print_results(header_source, analyzer, args, proxy):
             print(
                 f"{Fore.CYAN}Leyendo encabezados del archivo: {args.file}{Style.RESET_ALL}\n"
             )
-
         headers = header_source.get_from_file(args.file)
 
-    # Analizar encabezados
     results = analyzer.analyze_headers(headers, args.resume)
 
-    # Imprimir resultados por prioridad
     priority_colors = {
         HeaderPriority.CRITICAL: Fore.MAGENTA,
         HeaderPriority.HIGH: Fore.YELLOW,
@@ -597,34 +638,31 @@ def analyze_and_print_results(header_source, analyzer, args, proxy):
         HeaderPriority.DISCLOSURE: Fore.LIGHTRED_EX,
     }
 
-    # Primero mostrar todos los headers presentes si se ha seleccionado --resume
     if args.resume:
         for priority in HeaderPriority:
             for header in results[priority]["present"]:
                 print(f"  {header}")
-
         for priority in HeaderPriority:
             for header in results[priority]["missing"]:
                 print(f"  {header}")
     else:
         for priority in HeaderPriority:
-            # Solo mostrar la sección DISCLOSURE si hay headers presentes
             if (
                 priority == HeaderPriority.DISCLOSURE
                 and not results[priority]["present"]
             ):
                 continue
-
             if not args.resume:
                 print_section_header(priority.value, priority_colors[priority])
-
             if results[priority]["present"]:
                 for header in results[priority]["present"]:
                     print(f"  {header}")
-
             if results[priority]["missing"] and priority != HeaderPriority.DISCLOSURE:
                 for header in results[priority]["missing"]:
                     print(f"  {header}")
+
+    # Mostrar resultados
+    print_summary(results)
 
 
 #
