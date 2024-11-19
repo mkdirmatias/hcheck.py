@@ -9,10 +9,13 @@
 ## Características
 
 - Análisis de headers de seguridad HTTP
-- Soporte para análisis de URLs directas y archivos locales
+- Soporte para análisis de URLs y archivos locales
+- Soporte para múltiples URLs
+- Guardar output en archivo de texto
 - Categorización de headers por categoría (Crítico, Alta, Media, Opcional, Exposición)
 - Verificación de configuraciones recomendadas
 - Soporte para proxy
+- Soporte para encabezados HTTP personalizados
 - Modo resumen para salida compacta
 - Códigos de colores para mejor legibilidad
 
