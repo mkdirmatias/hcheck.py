@@ -17,6 +17,7 @@
 - Soporte para proxy
 - Soporte para encabezados HTTP personalizados
 - Modo resumen para salida compacta
+- Recuento de encabezados faltantes y presentes
 - Códigos de colores para mejor legibilidad
 
 ## Instalación
